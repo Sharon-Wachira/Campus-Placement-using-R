@@ -1,0 +1,1376 @@
+---
+title: "UNCOVERING THE KEY DRIVERS OF CAMPUS PLACEMENT SUCCESS"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+fontsize: 10pt
+mainfont: Arial
+geometry: margin=1in
+header-includes:
+- \usepackage{fancyvrb}
+- \DefineVerbatimEnvironment{Highlighting}{Verbatim}{fontsize=\small} % Reduce font
+  size for code/output
+- \renewcommand{\baselinestretch}{1.1}
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+# Load required libraries
+library(ggplot2)
+library(gridExtra)
+library(e1071)  # For skewness calculation
+library(ggplot2)
+library(reshape2)
+
+```
+
+
+
+```{r}
+# Load the dataset while ensuring valid column names
+data <- read.csv("C:/Users/hp/Documents/2. SUNWAY/Block 3/2. Business Statistics using R/Assignment/Group/Raw_Placement_Data_Full_Class.csv", check.names = TRUE)
+```
+
+## Introduction
+
+Campus Placement involves participating, identifying, and hiring young talented people for entry level positions in the job environment. Kesavaraj, G., & Pattnaik (2012) define it as a process whereby organizations meet and select intelligent and committed youth from various colleges and institutes who have the enthusiasm to prove and better themselves. Over the years, the need for talented and self-motivated people who can work tirelessly and with commitment has grown Bhargavi, S., & Yaseen, A. (2016). According to the National Association of Colleges and Employers (2023), close to two thirds of employers now use skill-based hiring practices for new entry-level hires. Other selection methods used by employees include interviews, aptitude tests, presentations, written assessments and many more. The higher demand being placed on graduates possessing the attributes render them to be work ready and have significant implications for graduate and selection practices. (Cabalero, C, & Walker, A, 2010). With this knowledge, it is important that institutions and students understand what places them in a better position for campus placement.
+
+## Project Motivation
+
+Choosing the ‘Factors Affecting Campus Placement’ dataset highlights the roles played by higher institutions in preparing students for the job market. Knowing what influences Campus placement will help institutions to improve both their academic and on-academic to help students transition from school to work.
+
+The dataset sourced from Kaggle offers comprehensive data on academic, demographic, and professional factors influencing campus placements. Key variables such as secondary school and higher secondary school percentages, degree specialization, and salary provide an opportunity to analyze both academic and non-academic factors enabling a holistic understanding of placement success. Beyond academics, skills such as communication, teamwork, and adaptability contribute significantly to campus placement outcomes as they foster collaborative and dynamic work environments (Andrews & Higson, 2008).
+
+Since there is an organizational demand to hire the right kind of talent, analyzing this dataset will provide insights into what increases the chances of successful campus placements. According to a report from the National Association of Colleges and Employers (NACE, 2020), around 55-60% of students who had completed their internships were offered full-time positions due to their development of industry-relevant skills, making them more attractive to recruiters. By analyzing the factors influencing campus placement, this study aims to bridge the gap between students’ preparation for jobs and industrial requirements. Educational institutions can better prepare students for the job market, thus benefiting both the employers and the fresh graduates.
+
+## Objectives
+
+Understanding how academic performance impacts campus placement. This seeks to explore how high or low the academic performance on secondary, higher secondary and degree correlates with campus placement.
+
+The influence Internship has on Campus Placement. Does prior experience in internship increase, decrease or have no impact on whether a student is placed.
+
+To develop a classification model predicting placement success based on academic and non-academic factors.
+
+## Literature Review
+
+#### Role of Academic Performance in Campus Placement Success
+
+According to York, Gibson, and Rankin (2015), student success encompasses ‘academic achievement, satisfaction, acquisition of skills and competences, persistence, attainment of learning objectives, and career success’. Continuous excellent academic performance reflects a student’s intellectual capacity, work ethic, and discipline. McCann and Hewitt (2023) found that higher academic performance significantly influences a student’s ability to secure work placements. Specifically, students excelling in their first year in Business and Economics had higher chances of campus placement.
+
+Furthermore, students who utilized school resources, such as libraries and tutoring services, performed better academically. de Araujo and Murray (2010) demonstrated that access to university-provided resources positively affected academic performance, which in turn improved placement outcomes. This highlights the importance of institutional support in enhancing students’ academic and career success.
+
+#### Impact of Internship experience on Campus Placement
+
+Internships play a critical role in determining career success as they bridge the gap between academic and demands of the workplace by offering students exposure to the real-world challenges in the employment sector. According to Galbraith, D., & Mondal, S. (2020), there is a high correlation between internships and job placement. Students who complete internships are more likely to get job offers according to the NACE 2020. Over 81% of the new graduates’ state that their experiences from their internship helped them adjust their career plans.
+
+Research done by Hart (2008) with 301 organization showed that despite employers being relatively satisfied with the entry level skills of the graduates, they were not confident that the graduate had what it took for advancement and promotion in the organization. This shows that having an internship would give the graduates a competitive edge as they start applying theoretical knowledge to the real world, gaining soft skills and discovering skills that you need to develop Ellis, C. et al. (2017).
+
+According to Manjunath, D. R. (2020), acquiring the first-class and having the knowledge for the relevant career in the job specification is not enough, you will be competing among others who have similar qualifications. Therefore, the unique mix of interpersonal skills and personal qualities are what makes you stand out in a crowd of all academics. Therefore, achieving this milestone is not only about getting a job but also obtaining skills and attributes that will enable you to be successful throughout your working life.
+
+Academic performance and internships are key to campus placement success as they showcase discipline and give students discipline and adaptability. Real-time exposure will prepare graduates to meet the employers’ expectations. Future studies should explore additional factors like mentorship programs, co-curricular activities, and non-academic skills.
+
+## Data Description
+
+A dataset named "Factors Affecting Campus Placement," from famous database website Kaggle is used in this project which contains interesting categorical and numerical attributes related to the placement of students in the workplaces. The target variable is the status which is a categorical variables representing placed or not placed, other key variables are mentioned in the table in the appendix.
+
+## Methodology
+
+The analysis starts with data collection from the Campus Recruitment dataset published on Kaggle which is loaded to RStudio for preprocessing and exploration.
+
+During the data preprocessing, the data was checked and being handled its duplicates and missing values, and irrelevant columns are dropped to ensure data quality. 
+
+This is followed by Exploratory Data Analysis (EDA) to discover the trends and relationships using statistical summaries and visualizations (such as bar charts, boxplots and correlation heatmap) to have better understanding the placement distribution and its association with academic preferences, work experiences, MBA specialization and other key factors.
+
+Next, after obtaining better understanding of the dataset, further preprocessing is conducted, including handling outliers (using IQR method) and perform feature engineering where it creates new variable, education_score (weighted average of SSC, HSC, and degree percentages, with weights of 0.3, 0.3 and 0.4 respectively). Categorical variables are encoded into numerical formats to ensure compatibility with the models. Next, feature selection is being performed to identify the most impactful variables to be used in the models.
+Prior performing the model, the target variable will be split into training (70%) and testing (30%) to ensure accuracy and fair outcomes.
+
+In the Modeling Phase, logistics regression is used as the primary model with forward feature selection adding variables incrementally: education score, work experience, MBA Specialization and high school streams. The models are then evaluated using metrics like accuracy, precision, recall, AUC-ROC and VIF.
+
+In the last stage, the Result Interpretation Phase involves analyzing logistics regression coefficients to assess the impact of predictors like academic scores and work experience on placement likelihood. Visualization such as ROC curve, confusion matrix and feature importance charts guide the selection of the best performing model, providing actionable insights into placement success factors.
+
+
+```{r include=FALSE}
+library(tidyverse)  # For data manipulation and visualization
+library(caret)      # For machine learning utilities
+library(GGally)     # For pair plots and correlation analysis
+library(broom)  
+```
+
+## Data Preprocessing
+
+
+## Data Cleaning
+
+Preprocessing began with data cleaning to ensure accuracy and reliability for analysis where columns with unique or null values were identified, with no missing or special character issues detected and next categorical variables, like gender, work experience, and status, were validated for consistent levels, ensuring compatibility for machine learning models. Overall, this preprocessing step ensured the dataset was well-structured, reliable, and ready for further analysis.
+
+```{r include=FALSE}
+# Count unique values for all columns
+unique_counts <- sapply(data, function(x) length(unique(x)))
+
+# Check for columns containing NULL values
+null_counts <- sapply(data, function(x) sum(is.null(x)))
+
+# Identify columns with NULL values
+null_columns <- names(data)[null_counts > 0]
+
+# Check for special characters globally
+special_character_check <- sapply(data, function(column) any(grepl("\\?|\\$", column)))
+
+# Store initial column names
+initial_column_names <- colnames(data)
+
+# Clean column names
+colnames(data) <- colnames(data) %>%
+  trimws() %>%                        # Remove leading/trailing spaces
+  gsub(" ", "_", .) %>%               # Replace spaces with underscores
+  tolower()                           # Convert to lowercase
+
+# Make column names unique
+colnames(data) <- make.names(colnames(data), unique = TRUE)
+# Store cleaned column names
+cleaned_column_names <- colnames(data)
+
+# Print the initial and cleaned column names inline
+cat("Initial Column Names:\n", paste(initial_column_names, collapse = ", "), "\n\n")
+cat("Cleaned Column Names:\n", paste(cleaned_column_names, collapse = ", "), "\n")
+
+```
+
+
+### Handling Missing Values and duplication
+Next missing values in the dataset was identified, where just one feature, “salary” had 67 missing values. After careful observation these missing values are not placed, therefore the messing values were imputed using a 0 and the outcome indicated 0 missing values for all the columns. This dataset did not have any duplicate values.
+
+```{r echo=FALSE}
+# Identify variables with missing values and their counts
+missing_before <- colSums(is.na(data))
+missing_before <- missing_before[missing_before > 0]  # Filter only variables with missing values
+
+# Display variables with missing values before handling
+cat("Variables with missing values before handling:\n")
+print(missing_before)
+
+# Handle missing values for the 'salary' variable (example: replace NA with 0 for "Not Placed" students)
+if ("salary" %in% names(missing_before)) {
+  data$salary[is.na(data$salary) & data$status == "Not Placed"] <- 0
+}
+
+# Recalculate variables with missing values after handling
+missing_after <- colSums(is.na(data))
+missing_after <- missing_after[missing_after > 0]  # Filter only variables with remaining missing values
+
+# Display variables with missing values after handling
+cat("\nVariables with missing values after handling:\n")
+print(missing_after)
+
+```
+
+## Exploratory Data Analysis (EDA) for preprocessing
+
+### Basic Statistics for Numerical Variables
+
+```{r echo=FALSE, fig.height=1, fig.width=7}
+summary(data %>% select(where(is.numeric)))
+```
+The dataset provides crucial information such as students’ academic performance, test scores, and placement outcomes which provide insights into the which factors that influence campus placement success. Ssc_p and hsc_p scores exhibit a similar pattern where the average scores are 67.33% and 66.33% respectively and median of 67% and 65% respectively. The same pattern can also be seen for the degree scores (degree_p) and MBA scores (mba_p) where the mean is 66.37 and 62.28% while the median is 66% and 62% respectively. However, the employment test (etest_p) scores demonstrate strong performance, with an average of 72.1% and median of 71%.
+
+Placement outcomes, as measured by salary data, reveal a significant variability ranging from minimum of 0 (unplaced student) to a maximum of 940,000. The average salary of placed students is 198,702, while median salaries are 240,000. This variability suggests that factors beyond academic such as employment experience may possibly influence the placement success. Overall, these trends offer valuable insights into the factors influencing campus places successfully.
+
+### Distribution Overview of Numerical Variables
+
+```{r echo=FALSE, fig.height=2, fig.width=3, warning=FALSE}
+
+# Refined subgroups with improved names
+numerical_categories <- list(
+  "Secondary and Higher Secondary Scores" = c("ssc_p", "hsc_p"),
+  "Undergraduate and MBA Scores" = c("degree_p", "mba_p", "etest_p"),
+  "Salary Information" = c("salary")
+)
+
+# Function to plot distributions for each subgroup
+plot_distributions <- function(category_name, columns, data) {
+  # Generate plots for all columns in the subgroup
+  plots <- lapply(columns, function(col) {
+    ggplot(data, aes(x = .data[[col]])) +
+      geom_histogram(aes(y = after_stat(density)), bins = 30, fill = "skyblue", color = "black", alpha = 0.7) +
+      geom_density(color = "red", size = 1) +
+      labs(
+        title = paste0(col, "\nSkewness: ", round(skewness(data[[col]], na.rm = TRUE), 2)),
+        x = col,
+        y = "Density"
+      ) +
+      theme_minimal() +
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 7),  # Center and enlarge title
+        axis.text = element_text(size = 6),
+        axis.title = element_text(size = 6)
+      )
+  })
+  
+  # Arrange the plots in a grid with 2 plots per row
+  grid.arrange(grobs = plots, ncol = 2, top = category_name)
+}
+
+# Plot distributions for each refined subgroup
+for (category in names(numerical_categories)) {
+  plot_distributions(category, numerical_categories[[category]], data)
+}
+```
+
+Academic scores for higher secondary (hsc_p), undergraduate (degree_p), MBA (mba_p) and employment test (etest_p) have slightly positive skewed (0.16, 0.24, 0.31 and 0.28 respectively) which indicates most students performed moderately to well, with fewer students scoring very high or very low. 
+
+On contrast, secondary scores (ssc_p) are slightly negative skewed which means more students scored higher compared to those scores low. This suggests at this level, most students have a strong academic foundation.
+
+The salary distribution also shows a positive skewness with 0.44 suggest that most students have lower salaries, with a smaller group earned significant higher amounts. The highest amount is zero representing those unplaced, while a peak around the median salary for placed students. This highlights the variability in placement outcomes and the importance of factors influencing the salary.
+
+
+
+```{r fig.height=2, fig.width=8}
+
+
+# Extract numeric columns from the dataset
+numeric_columns <- data[, sapply(data, is.numeric)]
+
+# Compute the correlation matrix for numeric columns
+cor_matrix <- cor(numeric_columns, use = "complete.obs")
+
+# Melt the correlation matrix for ggplot
+cor_melt <- melt(cor_matrix)
+
+# Create the correlation heatmap with value labels
+ggplot(data = cor_melt, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white") +  # Add white grid lines for clarity
+  geom_text(aes(label = round(value, 2)), color = "black", size = 3) +  # Add labels
+  scale_fill_gradient2(low = "lightgoldenrod", mid = "white", high = "lightblue", midpoint = 0) +  # Lightgoldenrod to White to Lightblue gradient
+  labs(
+    title = "Correlation Heatmap",
+    x = "Features",
+    y = "Features",
+    fill = "Correlation"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),  # Rotate x-axis labels
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold")  # Center the title
+  )
+```
+
+Correlation heatmap matrix indicates that the relationship between salary and SSC is the highest correlation with 0.54 followed by HSC and degree (0.45 and 0.41 respectively indicating strong academic performance tends to be associated with higher salary outcomes. MBA score shows a weak correlation of 0.14 which suggests that academic performance at this stage plays a small role in the placement. On the other hand, employment test also reflects weak correlation of 0.19 indicates that this test may not have significant impact on the salary outcomes.
+
+The heatmap of ANOVA P-Values (figure shown in Appendix B) illustrates the relationship between numerical and categorical variables. It can be observed that status has a strong relationship with SSC, HSC, degree and salary where p values are 0 which means that high academic performance at those stages are likely to secure placement status. On contrast, MBA and employment test shows weaker relationships with 0.2614 and 0.0617 respectively indicates that these qualifications may not significantly impact on the placement status. This heatmap further strengthen the statement in correlation matrix.
+
+### Handling Outliers
+
+#### Handling Outliers
+
+During the Basic Statistics and EDA process the histogram distribution for numerical variables, we identified some outliers in the numerical variables , this was further identified using the Interquartile Range Method (IQR), whereby formular is Lower Bound = Q1−1.5×IQR and Upper Bound=Q3+1.5×IQR and any values that follow greater than upper bound and lower than the lower bound was identified as outliers and count is displayed and visualised using boxplots.
+
+```{r fig.height=3, fig.width=8}
+# Identify numeric columns
+numeric_columns <- data[sapply(data, is.numeric)]
+
+# Function to count outliers in a column
+count_outliers <- function(column) {
+  Q1 <- quantile(column, 0.25, na.rm = TRUE)
+  Q3 <- quantile(column, 0.75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+  lower_bound <- Q1 - 1.5 * IQR
+  upper_bound <- Q3 + 1.5 * IQR
+  sum(column < lower_bound | column > upper_bound, na.rm = TRUE)
+}
+
+# Apply the outlier count function to all numeric columns
+outlier_counts <- sapply(numeric_columns, count_outliers)
+
+# Filter only columns with outliers for visualization
+columns_with_outliers <- numeric_columns[, outlier_counts > 0]
+
+# Create boxplots for columns with outliers
+if (ncol(columns_with_outliers) > 0) {
+  par(mfrow = c(1, ncol(columns_with_outliers)), mar = c(5, 4, 2, 1))  # Set layout to one row
+  for (col in colnames(columns_with_outliers)) {
+    boxplot(columns_with_outliers[[col]],
+            main = paste0(col, "\nOutliers: ", outlier_counts[col]),  # Include outlier count in the title
+            col = "lightblue",
+            border = "black",
+            outcol = "red",  # Set outlier points to red
+            horizontal = TRUE)  # Horizontal boxplot for better readability
+  }
+  par(mfrow = c(1, 1))  # Reset layout
+} else {
+  print("No columns with outliers to visualize.")
+}
+```
+
+```{r echo=FALSE, fig.height=3, fig.width=6}
+# Function to handle outliers using the IQR method
+handle_outliers <- function(column) {
+  Q1 <- quantile(column, 0.25, na.rm = TRUE)
+  Q3 <- quantile(column, 0.75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+  lower_bound <- Q1 - 1.5 * IQR
+  upper_bound <- Q3 + 1.5 * IQR
+  column[column < lower_bound] <- lower_bound
+  column[column > upper_bound] <- upper_bound
+  return(column)
+}
+
+# Handling outliers for specific columns
+data$salary <- handle_outliers(data$salary)
+data$hsc_p <- handle_outliers(data$hsc_p)
+data$degree_p <- handle_outliers(data$degree_p)
+
+# Function to calculate remaining outliers
+calculate_outliers <- function(column) {
+  Q1 <- quantile(column, 0.25, na.rm = TRUE)
+  Q3 <- quantile(column, 0.75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+  sum(column < (Q1 - 1.5 * IQR) | column > (Q3 + 1.5 * IQR), na.rm = TRUE)
+}
+
+# Calculate new outlier counts
+outlier_counts <- data.frame(
+  Variable = c("salary", "hsc_p", "degree_p"),
+  Outlier_Count = c(
+    calculate_outliers(data$salary),
+    calculate_outliers(data$hsc_p),
+    calculate_outliers(data$degree_p)
+  )
+)
+
+# Calculate total number of outliers in the dataset
+outlier_counts <- sum(outlier_counts$Outlier_Count, na.rm = TRUE)
+
+# Print outlier summary
+if (outlier_counts > 0) {
+  cat("Total number of outliers in the dataset:", outlier_counts, "\n")
+  print(outlier_counts)
+} else {
+  cat("No outliers detected in the dataset.\n")
+}
+
+
+```
+
+Outliers for the detected columns were handled using the IQR methods where any value below the lower bound is capped at the lower bound and any value above the upper bound is capped at the upper bound where this method prevented any data lost. Then the remaining outliers were detected where the count indicates absence of outliers and reconfirmed through the box plot visualizations (see the visualisation in apppendix for full detail).
+
+#### Feature Engineering
+
+A correlation heatmap created during the EDA process revealed high correlation between the education metrics hence the need to create a new feature called education_score was identified and this were created by combining 3 variables namely ssc_p. Hsc_p and degree_p using a weighted formula. education_score = 0.3 × ssc_p + 0.3 × hsc_p +0.4 × degree_p.
+
+```{r include=FALSE}
+# Load necessary libraries
+library(dplyr)
+
+# Feature Engineering (Suppress Output)
+invisible({
+  feature_engineered_data <- data %>%
+    mutate(
+      education_score = (0.3 * ssc_p) + (0.3 * hsc_p) + (0.4 * degree_p), # Composite education score
+      edu_work_interaction = education_score * ifelse(workex == "Yes", 1, 0) # Interaction term
+    )
+})
+
+```
+
+#### Encoding
+
+This process involves converting categorical variables to a numerical format. This was achieved by first applying Binary encoding to binary categories which were ‘status’, ‘gender’ and ‘work_experience’ and dummy variables that create separate columns for multi-category variables for ‘specialisation’ and ‘hsc_s’ columns was used.
+
+```{r include=FALSE}
+# Perform Encoding on the Feature-Engineered Dataset
+encoded_data <- feature_engineered_data %>%
+  mutate(
+    # Encode status as binary (0 = "Not Placed", 1 = "Placed")
+    status = ifelse(as.character(status) == "Placed", 1, 0),
+    
+    # Binary indicator for work experience
+    work_experience = ifelse(as.character(workex) == "Yes", 1, 0),
+    
+    # Dummy variables for MBA specialization
+    specialization_Mkt_Fin = ifelse(as.character(specialisation) == "Mkt&Fin", 1, 0),
+    specialization_Mkt_HR = ifelse(as.character(specialisation) == "Mkt&HR", 1, 0),
+    
+    # High school stream dummy variables
+    hsc_science = ifelse(as.character(hsc_s) == "Science", 1, 0),
+    hsc_commerce = ifelse(as.character(hsc_s) == "Commerce", 1, 0),
+    hsc_arts = ifelse(as.character(hsc_s) == "Arts", 1, 0)
+  )
+
+```
+
+
+#### Feature Selection
+
+The feature selection process is focused on identifying the most relevant variables to ensure interpretability and model effectiveness. Correlation matrix revealed strong relationships between the academic scores leading to the creation of education_scores which captures the overall performance. Salaries and mba_p are critical for understanding the relationship between academic and placement outcomes. Features such as specialisation, hsc_s and workex revealed patterns that could influence placement success when earlier visualized in the distribution of categorical variables.
+
+```{r}
+# Directly print the statement with selected features
+# Select relevant features directly from the encoded data
+selected_features <- encoded_data %>%
+  select(
+    education_score,             # Derived composite feature
+    work_experience,             # Encoded work experience
+    specialization_Mkt_Fin,      # Encoded specialization
+    specialization_Mkt_HR,       # Encoded specialization
+    edu_work_interaction,        # Interaction term
+    hsc_science,                 # Encoded high school stream
+    hsc_commerce,                # Encoded high school stream
+    hsc_arts,                    # Encoded high school stream
+    salary,                      # Numerical: Salary indicator
+    mba_p,                       # Numerical: MBA performance
+    status                       # Encoded target variable
+  )
+
+# Display only the names of the selected columns
+colnames(selected_features)
+
+```
+
+The interaction between academic performance and work experience revealed and interaction term edu_work_interaction which captures the combined impact of the factors on placement success. Considering the correlations between the features and target variable mainly, the features retained in shown in the figure.
+
+Status is the target variable.
+
+The EDA informed the feature selection as it highlighted patterns, correlations and distribution of different features that relate to placement outcomes. This reinforced the selection of the relevant predictors.
+
+
+## Model Result
+
+```{r load-dataset, echo=FALSE}
+# Load the dataset while ensuring valid column names
+selected_features <- read.csv("selected_features_dataset.csv", check.names = TRUE)
+
+# Assign a meaningful name to the dataset
+dataset <- selected_features
+```
+
+### Splitting the Dataset
+
+After successful encoding stage, the data was then divided into training set (70%) and testing set (30%) using the reproducible random seed (set.seed(123)) in R tools to ensure that the target variable is balanced in order to maintain the consistency of the model and maintain fairness in the outcomes.The 151 observations in the training set will be used to run the model, while 64 observations in the testing set will be used for model evaluation process and the distribution of the target variable (Placed vs. Not Placed) is then displayed using a bar chart where it shows that the proportions of Placed and Not Placed candidates are consistent across both subsets, minimizing potential sampling bias. Refer appendix D for visualisation.
+
+```{r echo=FALSE, fig.height=2, fig.width=5}
+# Load required libraries
+library(caTools)
+library(ggplot2)
+
+# Set a seed for reproducibility
+set.seed(123)
+
+# Split into training (70%) and testing (30%) using the dataset loaded previously
+split <- sample.split(dataset$status, SplitRatio = 0.7)
+train_data <- subset(dataset, split == TRUE)
+test_data <- subset(dataset, split == FALSE)
+
+# Add a column to differentiate the sets
+train_data$Set <- "Training"
+test_data$Set <- "Testing"
+combined_data <- rbind(train_data, test_data)
+
+# Ensure 'status' is treated as a factor for correct labeling
+combined_data$status <- as.factor(combined_data$status)
+
+# Calculate training and testing sizes
+training_size <- nrow(train_data)
+testing_size <- nrow(test_data)
+
+
+
+```
+
+## Regression Model
+
+### Baseline Logistic Regression Model: Education Score as a Predictor of Placement 
+
+To begin with education_score is compared with the target variable (status) using logistic regression model and the model indicated a coefficient of 0.3089 for the variable, indicating that for every 1-unit increase in education_score, the odds of being placed increase by approximately 36.2% (odds ratio: 1.36). The significance level of education_score is less than 0.001, that is, the P value is less than 0.001, indicating that education_score has a significant impact on status. Model’s residual deviance decreased significantly from 187.27 (null deviance) to 106.60, confirming education_score improved the model's fit and AIC value is shown as 110.6 which could be used to compare with the other models used and the lowest AIC value will indicate the overall best model.
+
+```{r echo=FALSE, fig.height=1, fig.width=1, message=FALSE, warning=FALSE}
+# Load required libraries
+library(car)      # For VIF
+library(pROC)     # For ROC curve and AUC
+
+# 1. Build a basic logistic regression model
+basic_model <- glm(status ~ education_score, family = binomial, data = train_data)
+
+# Extract key findings from the model
+model_summary <- summary(basic_model)
+coefficients <- coef(model_summary)
+p_values <- coef(summary(basic_model))[, 4]  # Extract p-values
+
+# Print a concise summary of key findings
+cat("\nKey Findings from Logistic Regression Model:\n")
+cat("- Coefficients:\n")
+print(coefficients)
+cat("\n- P-values:\n")
+print(p_values)
+cat("\n- Model Deviance:", model_summary$deviance, "\n")
+cat("- Null Deviance:", model_summary$null.deviance, "\n")
+cat("- AIC:", model_summary$aic, "\n")
+
+```
+For full model details, kindly refer to appendix C. 
+
+### Regression Model 02: Incorporating Work Experience
+
+For the second model work_experience was added alongside initial predictor education_score and the results indicated that both variables significantly influence placement status for students. The coefficient for education_score increased slightly to 0.32097, indicating that for every 1-unit increase in education_score, the odds of being placed increase by approximately 37.8% where this predictor remains highly significant with a p-value less than 0.001. work_experience emerged as a strong predictor with a coefficient of 1.58743, showing that candidates with prior work experience have nearly 4.89 times higher odds of being placed compared to those without work experience where this effect is statistically significant with a p-value of 0.0123.
+
+Model 2 shows improvement compared to the baseline as the residual deviance decreased from 106.6 in Model 1 to 99.3 in Model 2, indicating that the addition of work_experience explains more variability with related to student's placement status. 
+The models AIC value also reduced from 110.6 in Model 1 to 105.3 in Model 2, further supporting that Model 2 is a better fit and the log-likelihood also increased to -49.65, reflecting models' quality improvement. 
+
+```{r echo=FALSE, fig.height=1, fig.width=3}
+# Add work_experience to the logistic regression model
+model_2 <- glm(status ~ education_score + work_experience, family = binomial, data = train_data)
+
+# Extract key findings from the model
+model_2_summary <- summary(model_2)
+coefficients <- coef(model_2_summary)
+p_values <- coef(model_2_summary)[, 4]  # Extract p-values
+
+# Calculate odds ratios
+exp_coef <- exp(coef(model_2))  # Odds ratios
+
+# Extract AIC value
+model_2_aic <- AIC(model_2)
+
+# Log-Likelihood for model quality evaluation
+log_likelihood <- logLik(model_2)
+
+# Print a concise summary of key findings
+cat("\nKey Findings from Logistic Regression Model 2:\n")
+cat("- Coefficients:\n")
+print(coefficients)
+cat("\n- Odds Ratios:\n")
+print(exp_coef)
+cat("\n- P-values:\n")
+print(p_values)
+cat("\n- AIC Value:", model_2_aic, "\n")
+cat("- Log-Likelihood:", log_likelihood, "\n")
+
+
+```
+### Regression Model 03: Adding MBA Specialization
+
+The specialization_Mkt_Fin was included alongside other features used in model 2, to run the model 3 and the results indicated specialization_Mkt_Fin does not appear to have a statistically significant compared to the other 2 variables which was continously shown as strong predictors even in model 3 where a 1-unit increase in education_score raises the chances of placement by 37.2%, making it a strong and highly significant predictor (p-value < 0.001), similarly, having work experience increases placement odds by 4.6 times, showing its importance in determining placement success. 
+ 
+Coefficient for specialization_Mkt_Fin is 0.43839, which translates to an odds ratio of 1.55, suggesting a modest increase in placement odds for candidates specializing in Marketing-Finance and despite this, the p-value of 0.3901 indicates that this effect is not statistically significant when compared. 
+ 
+The model’s residual deviance decreased slightly to 98.57, and the AIC value is 106.57, showing marginal improvement compared to the second model's AIC of 105.30. The log-likelihood is -49.28, reflecting a similar level of model fit. The Variance Inflation Factor (VIF) values for all predictors are close to 1, confirming the absence of multicollinearity and the stability of the model. 
+
+```{r echo=FALSE, fig.height=1, fig.width=3}
+# Build the model with one specialization level removed to avoid aliasing
+model_3 <- glm(status ~ education_score + work_experience + specialization_Mkt_Fin, 
+               family = binomial, data = train_data)
+
+# Extract key findings
+coefficients <- coef(summary(model_3))
+odds_ratios <- exp(coef(model_3))
+vif_values <- vif(model_3)
+aic_value <- AIC(model_3)
+log_likelihood <- logLik(model_3)
+
+# Concise summary of findings
+cat("\nKey Findings from Logistic Regression Model 3:\n")
+cat("- Coefficients and P-values:\n")
+print(coefficients[, c(1, 4)])  # Show coefficients and p-values only
+cat("\n- Odds Ratios:\n")
+print(odds_ratios)
+cat("\n- VIF Values:\n")
+print(vif_values)
+cat("\n- AIC:", aic_value, "\n")
+cat("- Log-Likelihood:", log_likelihood, "\n")
+
+```
+### Model 4: Evaluating Placement Predictors with Educational and Professional Features
+
+Two new features were added to the model 4 which are high school streams (hsc_science, hsc_commerce) and MBA performance (mba_p) alongside the original predictors used in model 3 and the results confirmed education_score and work_experience remain important for the 4th consercative time. A 1-unit increase in education_score raises the chances of placement by 65.8%, and candidates with work experience are 15 times more likely to be placed than those without it and interestingly, mba_p (MBA performance) shows a significant negative relationship, where higher MBA scores reduce the odds of placement by 25.3%.
+
+Few non-significant features was identified by the model which are high school streams and specialization in Marketing-Finance, suggesting they do not strongly impact placement outcomes and in terms of model fit, Model 4 shows significant improvement with an AIC of 87.50 and a residual deviance of 73.50, making it the best-fitting model so far and provides deeper insights into placement predictors.
+
+```{r echo=FALSE, fig.height=1, fig.width=3}
+# Build the logistic regression model with high school streams and MBA performance
+model_4 <- glm(
+  formula = status ~ education_score + work_experience + specialization_Mkt_Fin +
+    hsc_science + hsc_commerce + mba_p,  # Excluded hsc_arts to avoid aliasing
+  family = binomial,
+  data = train_data
+)
+
+# Summarize the model
+summary(model_4)
+
+# Calculate AIC and Log-Likelihood for Model Evaluation
+aic_model_4 <- AIC(model_4)
+log_likelihood_model_4 <- logLik(model_4)
+cat("Model 4 AIC:", aic_model_4, "\n")
+cat("Log-Likelihood for Model 4:", log_likelihood_model_4, "\n")
+
+# Calculate Odds Ratios for Coefficients
+odds_ratios_model_4 <- exp(coef(model_4))
+cat("Odds Ratios for Model 4:\n")
+print(odds_ratios_model_4)
+
+# Check for Multicollinearity Using VIF
+library(car)
+vif_model_4 <- vif(model_4)
+cat("VIF Values for Model 4:\n")
+print(vif_model_4)
+
+```
+### Model 5; Interaction Effects Model
+
+Model 5 was also performed introducing the Interaction terms between education_score and work_experience to study about the potential combined effects, however, the interaction term was not statistically significant (p = 0.778) where the model suffered from high multicollinearity (VIF values exceeding 150) and a higher AIC (108.49) compared to Model 4 (87.49). Model 5 was excluded from the main analysis as a result of this and the full details of Model 5 are included in Appendix A.
+
+## Model Evaluation and Predicted Probabilities
+
+### Model Comparison Using AIC
+
+According to the Akaike Information Criterion (AIC) values table, model 4 have the lowest AIC values (87.4989), making it the best fit model among all the models used and features such as high school streams and MBA performance in Model 4 improves model performance without overfitting, compared to simpler models. 
+
+```{r echo=FALSE}
+# Compare models using AIC
+AIC(basic_model, model_2, model_3, model_4)
+```
+### Confusion Matrix Summary for Model 4
+
+Overall, the confusion matrix plot indicates that Model 4 is well performed where it correctly predicted 41 candidates as placed (True Positives) and 13 candidates as not placed (True Negatives). However, it made mistakes by predicting 7 candidates as placed when they were not (False Positives) and 3 candidates as not placed when they were actually placed (False Negatives). Higher number of true positive value indicates that model does a good job of identifying candidates who are placed, however, the 7 non-placed candidates were miscalculated as placed leaving for improvements.
+
+```{r echo=FALSE, fig.height=2, fig.width=3}
+# Predict probabilities using Model 4
+test_data$predicted_prob <- predict(model_4, newdata = test_data, type = "response")
+
+# Convert probabilities to binary predictions (threshold = 0.5)
+test_data$predicted_status <- ifelse(test_data$predicted_prob > 0.5, 1, 0)
+
+# Ensure both columns are factors for the confusion matrix
+test_data$status <- as.factor(test_data$status)
+test_data$predicted_status <- as.factor(test_data$predicted_status)
+
+# Generate confusion matrix for Model 4
+confusion_matrix <- table(
+  Actual = test_data$status,
+  Predicted = test_data$predicted_status
+)
+
+# Convert confusion matrix to a data frame for visualization
+confusion_df <- as.data.frame(as.table(confusion_matrix))
+
+# Visualize the confusion matrix
+library(ggplot2)
+ggplot(confusion_df, aes(x = Actual, y = Predicted, fill = Freq)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Freq), size = 3) +
+  scale_fill_gradient(
+    low = "#ADD8E6",  # Light blue
+    high = "#FFD700"  # Yellow
+  ) +
+  labs(
+    title = "Confusion Matrix for Model 4 (Best)",
+    x = "Actual Status",
+    y = "Predicted Status",
+    fill = "Frequency"
+  ) +
+  theme_minimal()
+
+```
+
+In addition to the confusion matrix, predicted and actual placement proportions were compared using a bar plot. The results show that the predicted values are quite similar to the actual values for both 'Placed' and 'Not Placed' categories. A detailed chart of this comparison is included in the appendix B
+
+### ROC Curve and AUC Analysis for Model 4
+
+The model differentiates between placed and non-placed candidates across various threshold values where area Under the Curve (AUC) is 0.919, indicating that Model 4 has excellent discriminative ability and the model is highly effective at distinguishing between non-placed and placed as the AUC value close to 1 for the model. 
+
+The diagonal red line represents the performance of a random classifier (AUC = 0.5), and the ROC curve for Model 4 lies significantly above this line, confirming its robustness and this supports the conclusion that Model 4 performs well in addressing the business objective of predicting placement success when compared with the other simpler models tested and studied.
+
+```{r echo=FALSE, fig.height=3, fig.width=3, message=FALSE, warning=FALSE}
+# Load required library
+library(pROC)
+
+# Generate ROC curve
+roc_curve <- roc(test_data$status, test_data$predicted_prob)
+
+# Extract AUC value
+auc_value <- auc(roc_curve)
+
+# Plot ROC curve with improved styling
+plot(
+  roc_curve,
+  col = "#4682B4",          # Set curve color (Steel Blue)
+  lwd = 2,                  # Line width
+  main = "ROC Curve for Final Model",
+  xlab = "1 - Specificity", # Label for x-axis
+  ylab = "Sensitivity"      # Label for y-axis
+)
+
+# Add diagonal reference line
+abline(a = 0, b = 1, col = "red", lty = 2) # Reference line
+
+# Display AUC value on the plot
+legend(
+  "bottomright",
+  legend = paste("AUC =", round(auc_value, 3)),
+  col = "#4682B4",
+  lwd = 2,
+  bty = "n"                 # No box around legend
+)
+
+# Print AUC value to console
+cat("AUC:", round(auc_value, 3), "\n")
+
+```
+### Feature Importance and Coefficients Analysis for Model 4
+
+Highest positive coefficient is found for work_experience (2.7), indicating that prior work experience significantly increases the likelihood of being placed and education_score also plays an important role, with a positive coefficient of 0.51, highlighting that higher education scores are linked with the placements in the job market.
+
+On the other hand features like Specialization in Marketing and Finance has a smaller positive impact with a coefficient of 0.36, MBA performance (mba_p) a negative coefficient (-0.29) and the coefficients for hsc_science and hsc_commerce indicate minimal contributions and do not significantly affect the placement with a coefficient value of 63 and 69 respectively. Looking at this it is much easier to understand what features could potentially influnec the outcome of a placement and build strategies accordingly.
+
+```{r echo=FALSE, fig.height=2, fig.width=8}
+# Extract coefficients from the final model (model_4 as best model)
+coef_df <- data.frame(
+  Feature = names(coef(model_4)[-1]),         # Exclude the intercept
+  Coefficient = coef(model_4)[-1]            # Coefficient values
+)
+
+# Filter out NA coefficients (if any)
+coef_df <- coef_df[!is.na(coef_df$Coefficient), ]
+
+# Load necessary library
+library(ggplot2)
+
+# Generate enough distinct colors for all features
+n_features <- nrow(coef_df)
+feature_colors <- scales::hue_pal()(n_features) # Automatically generate distinct colors
+
+# Plot coefficients with dynamic colors and labels
+ggplot(coef_df, aes(x = reorder(Feature, Coefficient), y = Coefficient, fill = Feature)) +
+  geom_bar(stat = "identity", width = 0.7) + # Adjust bar width for better aesthetics
+  geom_text(
+    aes(label = round(Coefficient, 2)),
+    hjust = ifelse(coef_df$Coefficient > 0, -0.2, 1.2), # Adjust label position dynamically
+    size = 4,
+    color = "black" # Ensure text is readable
+  ) +
+  coord_flip() + # Flip for horizontal bars
+  scale_fill_manual(values = feature_colors) + # Use dynamically generated colors
+  labs(
+    title = "Feature Coefficients in Final Model",
+    x = "Feature",
+    y = "Coefficient",
+    fill = "Feature"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none", # Remove legend since labels identify features
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14) # Center and style title
+  )
+
+```
+### Predicted Probabilities Distribution
+
+The density plot in the appendix shows how well the model predicts placement where candidates likely to be placed have predicted probabilities close to 1, while those not placed have lower probabilities. This shows the model can separate placed and not placed candidates using features like education score and work experience where the results match the ROC curve, with a high AUC of 0.919, confirming Model 4’s strong prediction ability.
+
+### Analysis of Misclassified Observations in Placement Prediction 
+
+The jitter plot for misclassified Observations in Placement Prediction is used and it illustrates the classification effect of the model. The model has a high classification accuracy for samples with extreme prediction probabilities (close to 0 or 1). Most of the misclassified samples are concentrated in the middle area of the prediction probability where the model's discrimination ability in the middle probability area still has room for improvement. 
+
+## Discussion 
+
+Logistic model's statistical evidence clearly indicated that education performance and work experience were critical predictors for campus placements for example, in Model 4, education score had a coefficient of 0.50556 and work experience had a coefficient of 2.73305, indicating that students with prior work experience were 15 times more likely to be placed compared to those without. These findings could help universities to develop new strategies to handle student with lower education scores by providing extra academic support and implementing internship opportunities and on the other hand employers can focus on candidates with higher education scores and work experience during their recruitment processes which saves much time and give the possibility to choose the best candidate for the job. 
+
+The developed model, with an AUC of 0.919, demonstrates strong predictive accuracy, making it a reliable tool for placement teams and the confusion matrix highlights the model’s effectiveness, correctly predicting 41 students as placed (True Positives) and 7 as not placed (True Negatives). Key thing to consider is that model misclassified 13 not placed students as placed (False Positives) and 3 placed students as not placed (False Negatives) leaving areas for improvement but models ability to predict majority of outcomes accurately this could be implemented in the business environment for better outcomes. This model could be used to identify the students who need extra support by the educational institutes, academic stakeholders can use the insights to refine their curriculum, focusing on skills and experiences that directly improve placement rates and employers can benefit from data-driven hiring decisions, ensuring they select candidates most likely to succeed in their roles. 
+
+## Limitations 
+The dataset used in this study had some gaps, as it didn’t include factors like soft skills, extracurricular activities, or interview performance, which are important for placement outcomes. Adding these variables could make the predictions more accurate and reliable. Confusion matrix demonstrated strong accuracy in identifying placed candidates but struggled with misclassifying some non-placed candidates as placed (false positives) which should be considered during further analysis. Another limitation is that data might not represent all student groups equally, especially underrepresented ones and using techniques like oversampling or using class-weighted models could be used to further address the class imbalance issues in logistic model and using only logistic regression meant other advanced models, like Gradient Boosting or Neural Networks, weren’t explored, and if used could improve the analysis allowing comparison to accurately choose the best model.
+
+## Conclusion
+ This study identified key factors affecting campus placement, focusing on academic performance and work experience and the logistic regression model showed that education score and work experience are the most important predictors of placement success, with work experience significantly increasing placement chances (odds ratio ~15). AUC of 0.919 indicates that model performed well also indicating strong reliability in predicting placements. These results provide useful insights for academic institutions and placement teams to improve student employability highlighting the importance of academic achievements and internships in influencing placements where the visual tools, like the confusion matrix and ROC curve, helped explain the model's performance and offered clear, actionable insights for stakeholders to enhance decision-making.
+
+For future work, adding more variables like extracurricular activities, soft skills, and interview performance can help improve predictions. Addressing misclassifications, especially false negatives or ensemble techniques could make the model even more accurate. Expanding the model’s application to other industries or institutions would increase its usefulness. In summary, this study provides a strong framework for understanding and improving placement strategies, helping academic stakeholders make data-driven decisions and support students better.
+
+## References
+Kesavaraj, G. and Pattnaik, M. (2012) 'A study on the effectiveness of campus recruitment and selection process in IT industries,' in Lecture notes in mechanical engineering, pp. 745–757. <https://doi.org/10.1007/978-81-322-1007-8_71>.
+
+Bhargavi, S. and Yaseen, A. (2016) Leadership styles and organizational performance, Strategic Management Quarterly. journal-article, pp. 87–117. <https://doi.org/10.15640/smq.v4n1a5>.
+
+Class of 2023 starting salaries show considerable growth (2024). <https://www.naceweb.org/job-market/compensation/class-of-2023-starting-salaries-show-considerable-growth>.
+
+Caballero, C.L. and Walker, A. (2010) 'Work readiness in graduate recruitment and selection: A review of current assessment methods,' Journal of Teaching and Learning for Graduate Employability, 1(1), pp. 13–25. <https://doi.org/10.21153/jtlge2010vol1no1art546>.
+
+Andrews, J. and Higson, H. (2008) 'Graduate Employability, ‘Soft Skills’ versus ‘Hard’ Business knowledge: A European study,' Higher Education in Europe, 33(4), pp. 411–422. <https://doi.org/10.1080/03797720802522627>.
+
+First destinations for the college class of 2020 (2020). <https://naceweb.org/job-market/graduate-outcomes/first-destination/class-of-2020>.
+
+York, T. et al. (2015) 'Defining and measuring academic success,' Practical Assessment, Research & Evaluation, 20, p. 2. <https://www.researchgate.net/publication/278305241>.
+
+MCCANN, M. and HEWITT, M., 2023. Academic performance and work placements: does academic performance influence the decision to complete a work placement? Higher Education, Skills and Work-Based Learning, 13 (1), pp. 97-112. ISSN 2042-3896
+
+De Araujo, P. and Murray, J. (2010) 'Estimating the effects of dormitory living on student performance,' SSRN Electronic Journal [Preprint]. <https://doi.org/10.2139/ssrn.1555892>.
+
+Galbraith, D. and Mondal, S. (2020) The potential power of internships and the impact on career preparation. <https://eric.ed.gov/?id=EJ1263677>.
+
+Caballero, C., Walker, A. and Fuller-Tyszkiewicz, M. (2011) 'The Work Readiness Scale (WRS): Developing a measure to assess work readiness in college graduates,' Journal of Teaching and Learning for Graduate Employability, 2–2, pp. 41–54.
+
+Ellis, C. et al. (2017) 'Living the Post-University life: Academics talk about retirement,' Qualitative Inquiry, 1–14.
+
+## Additional Works
+
+In this section, numerical and categorical will be further analyzed against the placement status. The purpose is to dive deeper into the factors that might influence the placement status for the students.
+
+### Additional EDA: Numerical Features Against Status
+
+```{r fig.height=3, fig.width=6}
+# Define numerical categories with subgroups (Salary Information removed)
+numerical_categories <- list(
+  "Secondary and Higher Secondary Scores" = c("ssc_p", "hsc_p"),
+  "Undergraduate and MBA Scores" = c("degree_p", "mba_p", "etest_p")
+)
+
+# Function to create boxplots for each subgroup
+plot_boxplots <- function(category_name, columns, data) {
+  # Set up plot layout
+  par(mfrow = c(1, min(length(columns), 3)))  # Adjust columns per row
+  
+  # Create boxplots for each column in the subgroup
+  for (col in columns) {
+    # Calculate median for annotation
+    medians <- tapply(data[[col]], data$status, median, na.rm = TRUE)
+    
+    # Plot boxplot
+    boxplot(data[[col]] ~ data$status,
+            main = paste(col, "by Status"),
+            xlab = "Status", ylab = col,
+            col = c("lightblue", "lightgoldenrod"))  # Use light blue and cream (lightgoldenrod)
+    
+    # Annotate medians
+    text(1:length(medians), medians, labels = round(medians, 2), pos = 3, col = "darkred")
+  }
+  
+  # Add title for the subgroup
+  title(main = category_name, outer = TRUE, line = -1)
+  par(mfrow = c(1, 1))  # Reset layout
+}
+
+# Plot boxplots for each subgroup (Salary Information is excluded)
+for (category in names(numerical_categories)) {
+  plot_boxplots(category, numerical_categories[[category]], data)
+}
+
+```
+
+In section EDA, it was determined that early education such as SSC and HSC play a critical role in the placement status. In the above boxplot, it shows that students who were placed tend to have a higher median score compared to not placed where students were placed has a median score of 72.5 while not place is 56.28. This indicates that academic achievement in the early stages plays a critical role in securing placement. Additionally, the wider range of scores among placed students shows that even students with varied performance can succeed if they meet certain benchmarks.  For the degree, it shows a slight difference between placed and not placed students with median of 68 and 61 respectively. This might show the importance of consistent academic achievement during undergraduate studies and early education.
+
+Meanwhile, MBA shows a slight difference with placed is 62.25 and not placed is 60.69 indicating that MBA still play a role but may not have much impact compared to other factors. 
+
+On the other hand, despite having big differences between the median in employment test, the upper and whisker shows that the maximum and minimum has only slight difference. This further supports the previous statement in section EDA where it states that it does not play a significant role in the placement.
+
+```{r fig.height=4, fig.width=4}
+# Create a boxplot for salary by status
+plot_salary_boxplot <- function(data) {
+  # Calculate median for annotation
+  medians <- tapply(data$salary, data$status, median, na.rm = TRUE)
+  
+  # Plot the boxplot
+  boxplot(data$salary ~ data$status,
+          main = "Salary Information\nsalary by Status",  # Title
+          xlab = "Status", ylab = "salary",  # Axis labels
+          col = c("lightblue", "lightgoldenrod"))  # Light blue and cream colors
+  
+  # Annotate medians on the plot
+  text(1:length(medians), medians, labels = round(medians, 2), pos = 3, col = "darkred")
+}
+
+# Call the function to generate the salary boxplot
+plot_salary_boxplot(data)
+
+```
+
+
+In Salary Information boxplot provides a comparison of salaries between placed and not placed. For the students that are not placed, it is consistent with 0 as these students did not secure employment.
+
+While for the placed students, the median salary is 265,000 and it can be observed that most students earn salaries close to the median. However, it can be observed that there are points above the upper whiskey that indicate that there are students that secure significantly higher salaries which might be exceptional cases such as specialized roles.
+
+The contrast between the two groups is clear as it not only shows that it leads to earning opportunities but also potential financial growth. The financial growth can be seen in the outliers in the placed group. This boxplot highlights the importance of securing placement for financial success after graduation.
+
+In summary, the insights can be used to emphasize the value of placement and invest in strategies to enhance placement opportunities.
+
+### Additional EDA: Categorical Features Against Status 
+
+```{r}
+# Define the selected columns for the required graphs
+selected_columns <- c("gender", "ssc_b", "hsc_b", "hsc_s")
+
+# Function to create stacked bar plots for the selected columns
+plot_selected_stacked_bar <- function(columns, data) {
+  # Set layout for 2 rows and 2 columns
+  par(mfrow = c(1, 4))  # Adjust layout for 4 plots
+  
+  # Loop through the selected columns
+  for (col in columns) {
+    # Calculate proportions for each status
+    prop_table <- prop.table(table(data[[col]], data$status), margin = 1)
+    
+    # Create bar plot
+    barplot(prop_table, beside = FALSE, col = c("lightblue", "lightgoldenrod"),  # Light blue and cream colors
+            legend = TRUE, args.legend = list(x = "topright", bty = "n"),  # Add legend
+            main = paste(col, "vs Status"),  # Title for each plot
+            xlab = col, ylab = "Proportion")  # Axis labels
+  }
+  
+  # Reset layout after plotting
+  par(mfrow = c(1, 1))
+}
+
+# Call the function to generate the required plots
+plot_selected_stacked_bar(selected_columns, data)
+
+```
+
+Boxplot above provides the relationship of the demographic information with the placement status. In the first plot shows that, it can be observed that male student makes up the larger portion of placed students compared to the placed student, however, for the not placed, the distribution is relatively balanced between the two genders. This might suggest female students might face greater challenge in achieving placement success due to the different in opportunities of preferences based on gender.
+
+Next, the ssc_b vs status plot shows among the students that were placed were mostly from ‘Others’ board compared from the ‘Central’. However, among the not placed, both ‘Others’ and ‘Central’ were more evenly distributed. This indicates that students from ‘Others’ boards tend to perform better in terms of securing placements. Similar patterns were found in the hsc_b vs status plot. This shows students from ‘Others’ boards for both SSC and HSC are more successful in placement compared to those from the ‘Central’ board.
+
+In the last boxplot, HSC specializations were divided into 3 which are Science, Commerce and Arts. Overall, it can be observed that most placed students are from ‘Science’ and ‘Commerce’ with a minority from ‘Arts’. Among the students not placed, the distribution is more balanced with ‘Arts’ being the dominant specialization. This might suggest that the employers prefer candidates with either ‘Science’ or ‘Commerce’ background, possibly due to their business nature. 
+
+```{r fig.height=3, fig.width=6}
+# Define the relevant columns for the graph
+columns <- c("degree_t", "workex", "specialisation")
+
+# Function to create stacked bar plots for the selected columns
+plot_stacked_bar <- function(columns, data) {
+  par(mfrow = c(1, 3))  # Three plots per row
+  
+  # Create stacked bar plots for each column
+  for (col in columns) {
+    prop_table <- prop.table(table(data[[col]], data$status), margin = 1)
+    
+    barplot(prop_table, beside = FALSE, col = c("lightblue", "lightgoldenrod","lightgreen"),  # Colors
+            legend = TRUE, args.legend = list(x = "topright", bty = "n"),  # Legend
+            main = paste(col, "vs Status"),  # Title
+            xlab = col, ylab = "Proportion")  # Labels
+  }
+  
+  par(mfrow = c(1, 1))  # Reset layout
+}
+
+# Call the function for the three columns
+plot_stacked_bar(columns, data)
+
+```
+
+In the boxplot above, it provides the comparison between the degree type, working experience and specialization against the placement.
+
+It can be observed that in the first plot that those with ‘Sci & Tech’ and ‘Comm&Mgmt’ are the majority in the placed and on the other hand, ‘Others’ category has the highest amount in not placed. This highlights that type of degree plays a crucial role in the placement.
+
+In the second plot, it compares the working experience with the placement. It is obvious that those with working experience are likely to get placement compared to students with no working experience. It can also be seen that only a quarter of not placed is with work experience. This demonstrates that experience also might be a strong determinant of placement success, which is likely due to employers’ preference to those that have practical skills and industry experience.
+
+Lastly, in the final plot shows the relationship between MBA specialization with the placement status. In general, students specializing in ‘Mkt&Fin’ have a higher success rate in the placement compared to ‘Mkt&HR’. This is likely due to the higher demand for skills in finance-related roles.
+
+
+## Appendix
+
+### Appendix A: Structure of Dataset
+
+Dataset consists of 215 rows and 15 columns where each row represents a unique student.
+
+```{r warning=FALSE}
+# Create a data frame for the key variables
+key_variables <- data.frame(
+  Variable = c("Gender", "SSC Percentage (ssc_p)", "HSC Percentage (hsc_p)", 
+               "Degree Specialization (degree_t)", "Placement Status (status)", "Salary (salary)"),
+  Description = c(
+    "Gender of the student",
+    "Numerical variable for secondary school performance percentage",
+    "Numerical variable for higher secondary school percentage",
+    "Categorical variable showing student's field of study",
+    "Categorical variable showing whether student has been placed or not",
+    "Numerical variable for offered salary of the placed students"
+  )
+)
+
+# Create the table
+knitr::kable(key_variables, format = "pipe", col.names = c("Variable", "Description"))
+```
+
+### Appendix B: Distribution Overview of Categorical Data
+
+```{r fig.height=2, fig.width=8}
+# Load required libraries
+library(ggplot2)
+library(gridExtra)
+
+# Define categorical subgroups
+categorical_categories <- list(
+  "Demographic Information" = c("gender", "ssc_b", "hsc_b", "hsc_s"),
+  "Educational and Employment Information" = c("degree_t", "workex", "specialisation", "status")
+)
+
+# Function to plot counts for each subgroup
+plot_categorical_distributions <- function(category_name, columns, data) {
+  # Generate plots for all columns in the subgroup
+  plots <- lapply(columns, function(col) {
+    ggplot(data, aes(x = .data[[col]])) +
+      geom_bar(fill = "lightblue", color = "black", alpha = 0.7) +
+      labs(
+        title = paste0("Counts of ", col),
+        x = col,
+        y = "Frequency"
+      ) +
+      theme_minimal() +
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 7),  # Center and enlarge title
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 6)  # Rotate x-axis labels
+      )
+  })
+  
+  # Arrange the plots in a grid with 2 plots per row
+  grid.arrange(grobs = plots, ncol = 4, top = category_name)
+}
+
+# Plot distributions for each subgroup
+for (category in names(categorical_categories)) {
+  plot_categorical_distributions(category, categorical_categories[[category]], data)
+}
+
+```
+
+Figure above shows the distribution of the categorical variables in the dataset which offers information such as demographic, educational and employment of the students.
+
+It can be observed that the gender distribution shows an imbalance with higher numbers of male students compared to females. This inconsistency may reflect the trends in the field of study or the placement rates.
+The distribution of SSC (10th grade) (ssc_b) boards is almost evenly split between the “Central” and “Others” indicates that students come from diverse educational backgrounds. However, for HSC (12th grade) (hsc_b) reflects that “Others” has a higher portion compared to the “Central”. This may suggest a shift toward non-central boards for higher secondary education. The majority of HSC (12th grade) students opt for “Commerce” or “Science” with less of 30 students choosing “Arts” which indicates strong inclination towards business and scientific education during this stage.
+
+For degree education, majority of the students pursued degree in “Comm&Mgmt” and “Sci&Tech” and with less than 30 students opt for “Others”. This is consistent with higher secondary school education backgrounds. While for MBA, “Mkt&Fin” is preferable compared to “Mkt&HR”, which could be to the possibility higher demand or better placement opportunities in finance related roles. This suggests that students are strategically aligning their education with market trends and career prospects.
+
+For working experience, it can be observed that majority of students does not have experience with only small portion has working experience. This factor possibly may influence the placement outcomes as employers might prefer those with working experience as they have the exposure to the field on top of the education background. However, placement status shows that most of the students were successfully placed, while remaining remained unplaced which indicates working experience might not be the major influence to determine the placement status.
+
+```{r fig.height=3, fig.width=6}
+# Load required libraries
+library(ggplot2)
+library(reshape2)
+
+# Ensure the dataset 'data' exists and is loaded
+if (!exists("data")) {
+  stop("The dataset 'data' is not loaded. Please load it before running this code.")
+}
+
+# Convert character columns to factors (if applicable)
+data <- data.frame(lapply(data, function(x) {
+  if (is.character(x)) as.factor(x) else x
+}))
+
+# Identify numeric and categorical columns
+numeric_columns <- names(data)[sapply(data, is.numeric)]
+categorical_columns <- names(data)[sapply(data, is.factor)]
+
+# Check if numeric and categorical columns are identified correctly
+if (length(numeric_columns) == 0) {
+  stop("No numeric columns found in the dataset.")
+}
+if (length(categorical_columns) == 0) {
+  stop("No categorical columns found in the dataset. Ensure you have variables of type 'factor'.")
+}
+
+# Initialize a data frame to store ANOVA p-values
+anova_results <- data.frame()
+
+# Perform ANOVA for each combination of numeric and categorical variables
+for (num_var in numeric_columns) {
+  for (cat_var in categorical_columns) {
+    # Use tryCatch to handle errors and ensure robustness
+    tryCatch({
+      # Perform ANOVA
+      anova_result <- aov(as.formula(paste(num_var, "~", cat_var)), data = data)
+      p_value <- summary(anova_result)[[1]][["Pr(>F)"]][1]  # Extract p-value
+      
+      # Store results
+      anova_results <- rbind(anova_results, data.frame(
+        Numeric_Variable = num_var,
+        Categorical_Variable = cat_var,
+        P_Value = p_value
+      ))
+    }, error = function(e) {
+      message("Error with ", num_var, " and ", cat_var, ": ", e$message)
+    })
+  }
+}
+
+# Check if anova_results is populated
+if (nrow(anova_results) == 0) {
+  stop("ANOVA results are empty. Please check your data and variable types.")
+}
+
+# Reshape data for heatmap
+anova_heatmap <- tryCatch({
+  dcast(anova_results, Numeric_Variable ~ Categorical_Variable, value.var = "P_Value")
+}, error = function(e) {
+  stop("Error during reshaping with dcast: ", e$message)
+})
+
+# Melt data for ggplot2
+anova_melt <- melt(anova_heatmap, id.vars = "Numeric_Variable")
+
+# Create the heatmap with custom color code and p-values as text
+ggplot(data = anova_melt, aes(x = variable, y = Numeric_Variable, fill = value)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = sprintf("%.4f", value)), color = "black", size = 3) +  # Add p-values as text
+  scale_fill_gradient(low = "lightgoldenrod", high = "lightblue", na.value = "grey", 
+                      name = "P-Value", limits = c(0, 1)) +
+  labs(title = "Heatmap of ANOVA P-Values", x = "Categorical Variable", y = "Numeric Variable") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5, size = 10, face = "bold"))
+```
+
+
+
+
+
+### Appendix C: Result of handling outliers
+
+```{r}
+# Create boxplots for handled columns
+columns_with_outliers <- data[c("salary", "hsc_p", "degree_p")]
+
+if (ncol(columns_with_outliers) > 0) {
+  par(mfrow = c(1, ncol(columns_with_outliers)), mar = c(5, 4, 2, 1))  # Set layout to one row
+  for (col in colnames(columns_with_outliers)) {
+    boxplot(columns_with_outliers[[col]],
+            main = paste0(col, "\nOutliers: ", calculate_outliers(columns_with_outliers[[col]])),  # Include outlier count
+            col = "lightblue",
+            border = "black",
+            outcol = "red",  # Set outlier points to red
+            horizontal = TRUE)  # Horizontal boxplot for better readability
+  }
+  par(mfrow = c(1, 1))  # Reset layout
+} else {
+  print("No columns with outliers to visualize.")
+}
+
+```
+
+### Appendix D: Splitting the Dataset
+```{r}
+# Generate the plot
+ggplot(combined_data, aes(x = Set, fill = status)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = c("lightblue", "lightgoldenrod"),
+                    labels = c("Not Placed", "Placed")) +
+  labs(title = "Placement Status Distribution in Training and Testing Sets",
+       x = "Dataset",
+       y = "Proportion",
+       fill = "Placement Status") +
+  annotate("text", x = 1, y = 1.05, label = paste("Training Set Size:", training_size), size = 3, hjust = 0.5) +
+  annotate("text", x = 2, y = 1.05, label = paste("Testing Set Size:", testing_size), size = 3, hjust = 0.5) +
+  theme_minimal()
+```
+
+
+### Appendix E: Baseline Logistic Regression Model: Education Score as a Predictor of Placement 
+
+```{r}
+# Load required libraries
+library(car)      # For VIF
+library(pROC)     # For ROC curve and AUC
+
+# 1. Build a basic logistic regression model
+basic_model <- glm(status ~ education_score, family = binomial, data = train_data)
+
+# Summarize the model
+summary(basic_model)
+
+# 3. Evaluate Model Fit with AUC-ROC
+# Predict probabilities on training data
+probabilities <- predict(basic_model, type = "response")
+
+```
+
+### Appendix F: Regression Model 02: Incorporating Work Experience
+
+```{r}
+# Add work_experience to the logistic regression model
+model_2 <- glm(status ~ education_score + work_experience, family = binomial, data = train_data)
+
+# Summarize the model
+summary(model_2)
+
+# AIC value for comparison
+model_2_aic <- AIC(model_2)
+print(paste("AIC Value for Model 2:", model_2_aic))
+
+# Coefficients and interpretation
+exp_coef <- exp(coef(model_2))  # Calculate odds ratios
+print("Odds Ratios:")
+print(exp_coef)
+
+# Log-likelihood for model quality evaluation
+log_likelihood <- logLik(model_2)
+print(paste("Log-Likelihood:", log_likelihood))
+
+
+
+```
+### Appendix G: Regression Model 03: Adding MBA Specialization
+
+```{r}
+# Build the model with one specialization level removed to avoid aliasing
+model_3 <- glm(status ~ education_score + work_experience + specialization_Mkt_Fin, 
+               family = binomial, data = train_data)
+
+# Summarize the model
+summary(model_3)
+
+# Check VIF
+library(car)
+vif_model_3 <- vif(model_3)
+print("VIF Values for Model 3:")
+print(vif_model_3)
+
+# Evaluate model fit
+aic_model_3 <- AIC(model_3)
+log_likelihood_model_3 <- logLik(model_3)
+
+print(paste("Model 3 AIC:", aic_model_3))
+print(paste("Log-Likelihood:", log_likelihood_model_3))
+
+# Interpret odds ratios
+odds_ratios_model_3 <- exp(coef(model_3))
+print("Odds Ratios for Model 3:")
+print(odds_ratios_model_3)
+
+
+```
+
+
+### Appendix H: Interaction Effects Model
+
+```{r echo=FALSE}
+# Adjust the model by removing redundant predictors
+model_5 <- glm(
+  formula = status ~ education_score + work_experience + specialization_Mkt_Fin +
+    education_score:work_experience, 
+  family = binomial, 
+  data = train_data
+)
+
+# Check for aliased coefficients
+alias(model_5)
+
+# Summarize the model
+summary(model_5)
+
+# Check Variance Inflation Factor (VIF) to ensure no multicollinearity
+library(car)
+vif_model_5 <- vif(model_5)
+print("VIF Values for Model 5:")
+print(vif_model_5)
+
+# Evaluate model fit
+aic_model_5 <- AIC(model_5)
+log_likelihood_model_5 <- logLik(model_5)
+
+print(paste("Model 5 AIC:", aic_model_5))
+print(paste("Log-Likelihood:", log_likelihood_model_5))
+
+# Interpret odds ratios
+odds_ratios_model_5 <- exp(coef(model_5))
+print("Odds Ratios for Model 5:")
+print(odds_ratios_model_5)
+```
+### Appendix I: Comparison of Predicted vs. Actual Placement Outcomes for Model 4
+
+```{r echo=FALSE}
+# Load required libraries
+library(ggplot2)
+library(reshape2)
+
+# Create a data frame for predicted vs. actual proportions
+predicted_vs_actual <- data.frame(
+  Category = c("Actual", "Predicted"),
+  Placed = c(mean(test_data$status == 1), mean(test_data$predicted_status == 1)),
+  NotPlaced = c(mean(test_data$status == 0), mean(test_data$predicted_status == 0))
+)
+
+# Reshape the data for ggplot
+predicted_vs_actual <- melt(predicted_vs_actual, id.vars = "Category")
+
+# Improved visualization
+ggplot(predicted_vs_actual, aes(x = Category, y = value, fill = variable)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  scale_fill_manual(
+    values = c("lightblue", "gold"),
+    labels = c("Not Placed", "Placed")
+  ) +
+  labs(
+    title = "Comparison of Predicted vs. Actual Placement",
+    x = "Category",
+    y = "Proportion",
+    fill = "Placement Status"
+  ) +
+  geom_text(
+    aes(label = round(value, 2)),
+    position = position_dodge(0.7),
+    vjust = -0.5,
+    size = 4
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10)
+  )
+
+```
+### Predicted Probabilities Distribution
+
+```{r echo=FALSE}
+# Improved Code
+ggplot(test_data, aes(x = predicted_prob, fill = factor(status))) +
+  geom_density(alpha = 0.6, color = "black") + # Add border for better visibility
+  scale_fill_manual(values = c("lightblue", "lightgoldenrod"), 
+                    labels = c("Not Placed", "Placed")) +
+  labs(
+    title = "Predicted Probabilities Distribution by Placement Status",
+    x = "Predicted Probability",
+    y = "Density",
+    fill = "Placement Status"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"), # Center-align and bold title
+    legend.position = "top", # Position legend at the top
+    legend.title = element_text(size = 12), 
+    legend.text = element_text(size = 10)
+  )
+
+```
+### Analysis of Misclassified Observations in Placement Prediction
+
+```{r}
+# Add a new column to categorize misclassified and correctly classified observations
+test_data$misclassified <- ifelse(test_data$predicted_status == test_data$status, "Correct", "Incorrect")
+
+# Enhanced visualization for misclassified observations
+library(ggplot2)
+ggplot(test_data, aes(x = predicted_prob, y = factor(status), color = misclassified)) +
+  geom_jitter(alpha = 0.6, size = 2, width = 0.2) + # Added width for better separation of points
+  scale_color_manual(values = c("Correct" = "green", "Incorrect" = "red")) + # Use clearer color labels
+  labs(
+    title = "Misclassified Observations",
+    x = "Predicted Probability",
+    y = "Actual Status",
+    color = "Classification"
+  ) +
+  scale_y_discrete(labels = c("0" = "Not Placed", "1" = "Placed")) + # Clear labels for actual status
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"), # Center the title
+    legend.position = "top" # Move legend to the top for better visibility
+  )
+
+```
+
+
+
