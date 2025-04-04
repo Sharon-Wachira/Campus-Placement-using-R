@@ -11,14 +11,21 @@ Academic Performance is a key predictor of Placement. According to the models us
 
 ![Image](https://github.com/user-attachments/assets/8b073483-4fb5-4b36-9ea6-cbb7011af2b8)
 Work experience increases chance of placement. This shows that universities should encourage internships, industrial training and freelance projects to boost students' work experience before graduating. 
+![image](https://github.com/user-attachments/assets/88aff640-930f-411e-9b4a-fe170987201f)
 
 Specialization in Business and Finance have higher salary offers. Career advisors should align students' skills and interests with market demand to help them choose the best specialization for better job prospects. 
 ![image](https://github.com/user-attachments/assets/b62f3fe8-ed14-41a0-84fb-dfd26e1cb779)
-
 
 Lastly, gender gap in placement in salary. Male students have higher placement rates. Universities should implement programs to bridge this gap like industry networking, negotiation training and opportunities for mentorship especially for female students. 
 
 ### Models Used 
 1. Logistic Regression
 2. Random Forest
-3. 
+
+### Conclusion
+The predictive models built demonstrated strong performance in identifying students' placement status with an 87% accuracy. 
+![image](https://github.com/user-attachments/assets/2c4a200a-3713-4016-b3aa-a9518d330a68)
+
+The green points above show correct classifications making the model reliable for most students. However, the misclassified suggest that additional factors like soft skills or networking may influence placement outcomes beyond the provided dataset.
+
+
